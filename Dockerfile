@@ -16,8 +16,10 @@ EXPOSE 9977
 
 RUN wget https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7z \
     && wget https://github.com/jianchang512/stt/releases/download/0.0/faster-base.7z \
+    && wget https://github.com/jianchang512/stt/releases/download/0.0/faster-small.7z \
     && 7z x faster-tiny.7z  -r -o/stt/internel-models \
     && 7z x faster-base.7z  -r -o/stt/internel-models \
+    && 7z x faster-small.7z  -r -o/stt/internel-models \
     && rm -rf faster-*.7z
 
 WORKDIR /stt

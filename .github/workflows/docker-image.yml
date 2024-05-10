@@ -15,12 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       name: Check out code
-    - name: Test1
-      id: t1
-      uses: Kaven-Universe/github-action-current-date-time@v1
-      with:
-        format: "yyyy-MM-dd"
-
     - uses: mr-smithers-excellent/docker-build-push@v6
       name: Build & push Docker image
       with:
@@ -38,10 +32,10 @@ jobs:
       run: echo "${{ secrets.ALIYUN_PASSWORD }}" | docker login -u ${{secrets.ALIYUN_USERNAME}} registry.cn-hangzhou.aliyuncs.com --password-stdin
     - name: push to aliyun
       run: |-
-        docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:latest
-        docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
-        docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:latest
-        docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
+        docker tag ${{ secrets.DOCKER_USERNAME }}/stt:latest registry.cn-hangzhou.aliyuncs.com/${{ secrets.DOCKER_USERNAME }}/stt:latest
+        docker tag ${{ secrets.DOCKER_USERNAME }}/stt:latest registry.cn-hangzhou.aliyuncs.com/${{ secrets.DOCKER_USERNAME }}/stt:${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
+        docker push registry.cn-hangzhou.aliyuncs.com/${{ secrets.DOCKER_USERNAME }}/stt:latest
+        docker push registry.cn-hangzhou.aliyuncs.com/${{ secrets.DOCKER_USERNAME }}/stt:${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
 
 
 

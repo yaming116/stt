@@ -290,7 +290,7 @@ if __name__ == '__main__':
             # print(f"\n{cfg.transobj['lang8']} http://{web_address}")
             app.logger.info(f"\n{cfg.transobj['lang8']} http://{web_address}")
 
-            http_server.serve_forever()
+            http_server.serve_forever(stop_timeout=10)
         finally:
             if http_server:
                 http_server.stop()
