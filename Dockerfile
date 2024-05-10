@@ -23,7 +23,7 @@ RUN wget https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7
 WORKDIR /stt
 
 #COPY requirements.txt requirements.txt
-RUN pip flask requests gevent faster-whisper fsspec
+RUN pip install flask requests gevent faster-whisper fsspec
 
 RUN pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
 
