@@ -10,10 +10,6 @@ RUN apt-get update \
 # 运行端口
 ENV SERVER_PORT=9977
 EXPOSE 9977
-
-WORKDIR /stt
-COPY . .
-
 #download models: tiny ， base
 # tiny https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7z
 # base https://github.com/jianchang512/stt/releases/download/0.0/faster-base.7z
@@ -24,8 +20,13 @@ RUN wget https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7
     && 7z x faster-base.7z  -r -o/stt/internel-models \
     && rm -rf faster-*.7z
 
-RUN pip install -r requirements.txt
+WORKDIR /stt
+
+#COPY requirements.txt requirements.txt
+RUN pip flask requests gevent faster-whisper fsspec
 
 RUN pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
+
+COPY . .
 
 CMD ["python" , "/stt/start.py"]
