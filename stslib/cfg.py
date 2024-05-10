@@ -56,6 +56,8 @@ INTERNEL_MODEL_DIR = os.path.join(ROOT_DIR, 'internel-models')
 STATIC_DIR = os.path.join(ROOT_DIR, 'static')
 TMP_DIR = os.path.join(STATIC_DIR, 'tmp')
 
+model_cache={}
+
 progressbar={}
 progressresult={}
 
