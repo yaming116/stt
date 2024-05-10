@@ -28,4 +28,4 @@ RUN pip install -r requirements.txt
 
 RUN pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
 
-CMD ["python" , "start.py"]
+CMD ["python" , "/stt/start.py"]

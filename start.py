@@ -279,16 +279,17 @@ if __name__ == '__main__':
     http_server = None
     try:
         threading.Thread(target=tool.checkupdate).start()
-        os.getenv('')
 
         try:
             if cfg.devtype=='cpu':
-                print('\n如果设备使用英伟达显卡并且CUDA环境已正确安装，可修改set.ini中\ndevtype=cpu 为 devtype=cuda, 然后重新启动以加快识别速度\n')
+                app.logger.info('\n如果设备使用英伟达显卡并且CUDA环境已正确安装，可修改set.ini中\ndevtype=cpu 为 devtype=cuda, 然后重新启动以加快识别速度\n')
             web_address = '0.0.0.0:%s' % cfg.SERVER_PORT
             host = web_address.split(':')
             http_server = WSGIServer((host[0], int(host[1])), app, handler_class=CustomRequestHandler)
             # threading.Thread(target=tool.openweb, args=('0.0.0.0:9977',)).start()
-            print(f"\n{cfg.transobj['lang8']} http://{web_address}")
+            # print(f"\n{cfg.transobj['lang8']} http://{web_address}")
+            app.logger.info(f"\n{cfg.transobj['lang8']} http://{web_address}")
+
             http_server.serve_forever()
         finally:
             if http_server:
