@@ -39,9 +39,9 @@ jobs:
     - name: push to aliyun
       run: |-
         docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:latest
-        docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:{{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
+        docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
         docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:latest
-        docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:{{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
+        docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
 
 
 
