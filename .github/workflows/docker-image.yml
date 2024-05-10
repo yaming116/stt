@@ -28,7 +28,6 @@ jobs:
         context: .
         labels: |-
           org.opencontainers.image.source=https://github.com/${{ github.repository }}
-          org.opencontainers.image.revision=${{ github.sha }}
         tags: ${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}, latest
         registry: docker.io
         dockerfile: Dockerfile
