@@ -5,9 +5,10 @@ import torch
 import re
 ROOT_DIR = os.getcwd()
 
+
+
 def parse_ini(file=os.path.join(ROOT_DIR,'set.ini')):
     sets={
-        "web_address":"127.0.0.1:9977", 
         "lang":"en" if locale.getdefaultlocale()[0].split('_')[0].lower() != 'zh' else "zh", 
         "devtype":"cpu", 
         "cuda_com_type":"int8",
@@ -38,9 +39,12 @@ def parse_ini(file=os.path.join(ROOT_DIR,'set.ini')):
                 sets[line[0]]=str(line[1]).lower()
     return sets
 
+
+
 sets=parse_ini()
 print(sets)
-web_address=sets.get('web_address')
+
+SERVER_PORT = os.getenv('SERVER_PORT', 9977)
 LANG=sets.get('lang')
 devtype=sets.get('devtype')
 cuda_com_type=sets.get('cuda_com_type')
@@ -48,6 +52,7 @@ cuda_com_type=sets.get('cuda_com_type')
 
 
 MODEL_DIR = os.path.join(ROOT_DIR, 'models')
+INTERNEL_MODEL_DIR = os.path.join(ROOT_DIR, 'internel-models')
 STATIC_DIR = os.path.join(ROOT_DIR, 'static')
 TMP_DIR = os.path.join(STATIC_DIR, 'tmp')
 

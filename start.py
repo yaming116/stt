@@ -99,11 +99,15 @@ def upload():
         return jsonify({'code': 2, 'msg': cfg.transobj['lang2']})
 
 
-def shibie(*, wav_name=None, model=None, language=None, data_type=None, wav_file=None, key=None):
+def shibie(*, wav_name=None, model_name=None, language=None, data_type=None, wav_file=None, key=None):
     try:
         sets=cfg.parse_ini()
         print(f'{sets.get("initial_prompt_zh")}')
-        modelobj = WhisperModel(model, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=cfg.ROOT_DIR + "/models", local_files_only=True)
+        model_path = cfg.MODEL_DIR
+        if not os.path.exists(os.path.join(cfg.MODEL_DIR, f'models--Systran--faster-whisper-{model_name}/snapshots/')):
+            model_path = cfg.INTERNEL_MODEL_DIR
+
+        modelobj = WhisperModel(model_name, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=model_path, local_files_only=True)
         cfg.progressbar[key]=0
         segments,info = modelobj.transcribe(wav_file,  beam_size=sets.get('beam_size'),best_of=sets.get('best_of'),temperature=0 if sets.get('temperature')==0 else [0.0,0.2,0.4,0.6,0.8,1.0],condition_on_previous_text=sets.get('condition_on_previous_text'),vad_filter=sets.get('vad'),  vad_parameters=dict(min_silence_duration_ms=300),language=language, initial_prompt=None if language!='zh' else sets.get('initial_prompt_zh'))
         total_duration = round(info.duration, 2)  # Same precision as the Whisper timestamps.
@@ -147,7 +151,7 @@ def shibie(*, wav_name=None, model=None, language=None, data_type=None, wav_file
 def process():
     # 原始字符串
     wav_name = request.form.get("wav_name").strip()
-    model = request.form.get("model")
+    model_name = request.form.get("model")
     # 语言
     language = request.form.get("language")
     # 返回格式 json txt srt
@@ -155,15 +159,18 @@ def process():
     wav_file = os.path.join(cfg.TMP_DIR, wav_name)
     if not os.path.exists(wav_file):
         return jsonify({"code": 1, "msg": f"{wav_file} {cfg.langlist['lang5']}"})
-    if not os.path.exists(os.path.join(cfg.MODEL_DIR, f'models--Systran--faster-whisper-{model}/snapshots/')):
-        return jsonify({"code": 1, "msg": f"{model} {cfg.transobj['lang4']}"})
-    key=f'{wav_name}{model}{language}{data_type}'
+    if not os.path.exists(os.path.join(cfg.MODEL_DIR, f'models--Systran--faster-whisper-{model_name}/snapshots/')):
+        if not os.path.exists(
+                os.path.join(cfg.INTERNEL_MODEL_DIR, f'models--Systran--faster-whisper-{model_name}/snapshots/')):
+            return jsonify({"code": 1, "msg": f"{model_name} {cfg.transobj['lang4']}"})
+
+    key=f'{wav_name}{model_name}{language}{data_type}'
     #重设结果为none
     cfg.progressresult[key]=None
     # 重设进度为0
     cfg.progressbar[key]=0
     #新线程启动实际任务
-    threading.Thread(target=shibie, kwargs={"wav_name":wav_name, "model":model, "language":language, "data_type":data_type, "wav_file":wav_file, "key":key}).start()
+    threading.Thread(target=shibie, kwargs={"wav_name":wav_name, "model_name":model_name, "language":language, "data_type":data_type, "wav_file":wav_file, "key":key}).start()
     return jsonify({"code":0, "msg":"ing"})
     
 
@@ -189,12 +196,18 @@ def api():
     try:
         # 获取上传的文件
         audio_file = request.files['file']
-        model = request.form.get("model")
+        model_name = request.form.get("model")
         language = request.form.get("language")
         response_format = request.form.get("response_format")
-        print(f'{model=},{language=},{response_format=}')
-        if not os.path.exists(os.path.join(cfg.MODEL_DIR, f'models--Systran--faster-whisper-{model}/snapshots/')):
-            return jsonify({"code": 1, "msg": f"{model} {cfg.transobj['lang4']}"})
+        print(f'{model_name=},{language=},{response_format=}')
+        model_path = cfg.MODEL_DIR
+
+        if not os.path.exists(os.path.join(cfg.MODEL_DIR, f'models--Systran--faster-whisper-{model_name}/snapshots/')):
+            if not os.path.exists(os.path.join(cfg.INTERNEL_MODEL_DIR, f'models--Systran--faster-whisper-{model_name}/snapshots/')) :
+
+                return jsonify({"code": 1, "msg": f"{model_name} {cfg.transobj['lang4']}"})
+            else:
+                model_path = cfg.INTERNEL_MODEL_DIR
 
         # 如果是mp4
         noextname, ext = os.path.splitext(audio_file.filename)
@@ -224,7 +237,7 @@ def api():
                 return jsonify({"code": 1, "msg": f"{cfg.transobj['lang3']} {ext}"})
         print(f'{ext=}')
         sets=cfg.parse_ini()
-        model = WhisperModel(model, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=cfg.ROOT_DIR + "/models", local_files_only=True)
+        model = WhisperModel(model_name, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=model_path, local_files_only=True)
 
         segments,_ = model.transcribe(wav_file, beam_size=sets.get('beam_size'),best_of=sets.get('best_of'),temperature=0 if sets.get('temperature')==0 else [0.0,0.2,0.4,0.6,0.8,1.0],condition_on_previous_text=sets.get('condition_on_previous_text'),vad_filter=sets.get('vad'),
     vad_parameters=dict(min_silence_duration_ms=300,max_speech_duration_s=10.5),language=language,initial_prompt=None if language!='zh' else sets.get('initial_prompt_zh'))
@@ -266,12 +279,16 @@ if __name__ == '__main__':
     http_server = None
     try:
         threading.Thread(target=tool.checkupdate).start()
+        os.getenv('')
+
         try:
             if cfg.devtype=='cpu':
                 print('\n如果设备使用英伟达显卡并且CUDA环境已正确安装，可修改set.ini中\ndevtype=cpu 为 devtype=cuda, 然后重新启动以加快识别速度\n')
-            host = cfg.web_address.split(':')
+            web_address = '0.0.0.0:%s' % cfg.SERVER_PORT
+            host = web_address.split(':')
             http_server = WSGIServer((host[0], int(host[1])), app, handler_class=CustomRequestHandler)
-            threading.Thread(target=tool.openweb, args=(cfg.web_address,)).start()
+            # threading.Thread(target=tool.openweb, args=('0.0.0.0:9977',)).start()
+            print(f"\n{cfg.transobj['lang8']} http://{web_address}")
             http_server.serve_forever()
         finally:
             if http_server:
