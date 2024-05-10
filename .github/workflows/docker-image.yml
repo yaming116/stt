@@ -15,10 +15,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       name: Check out code
-    - name: Put current date into a variable
-      run: |
-        $NOW=& Get-Date -format yyyy-MM-dd
-        echo "NOW=$NOW" >> $env:GITHUB_ENV
+    - name: Test1
+      id: t1
+      uses: Kaven-Universe/github-action-current-date-time@v1
+      with:
+        format: "yyyy-MM-dd"
+
     - uses: mr-smithers-excellent/docker-build-push@v6
       name: Build & push Docker image
       with:
@@ -27,7 +29,7 @@ jobs:
         labels: |-
           org.opencontainers.image.source=https://github.com/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
-        tags: ${{env.NOW}}, latest
+        tags: "${{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}", latest
         registry: docker.io
         dockerfile: Dockerfile
         platforms: linux/amd64,linux/arm64
