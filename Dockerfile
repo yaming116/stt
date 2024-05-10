@@ -26,5 +26,6 @@ RUN wget https://github.com/jianchang512/stt/releases/download/0.0/faster-tiny.7
 
 RUN pip install -r requirements.txt
 
+RUN pip install torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
 
 CMD ["python" , "start.py"]

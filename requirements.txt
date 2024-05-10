@@ -1,5 +1,4 @@
 #torch==2.1.2
-torch==2.1.2+cpu
 flask
 requests
 gevent
