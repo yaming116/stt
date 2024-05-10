@@ -34,3 +34,15 @@ jobs:
         platform: linux/amd64,linux/arm64
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: login aliyun
+      run: echo "${{ secrets.ALIYUN_PASSWORD }}" | docker login -u ${{secrets.ALIYUN_USERNAME}} registry.cn-hangzhou.aliyuncs.com --password-stdin
+    - name: push to aliyun
+      run: |-
+        docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:latest
+        docker tag yaming116/stt:latest registry.cn-hangzhou.aliyuncs.com/yaming116/stt:{{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
+        docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:latest
+        docker push registry.cn-hangzhou.aliyuncs.com/yaming116/stt:{{ steps.t1.outputs.year }}-${{ steps.t1.outputs.month }}-${{ steps.t1.outputs.day }}
+
+
+
+  
