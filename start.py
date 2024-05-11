@@ -108,7 +108,7 @@ def shibie(*, wav_name=None, model_name=None, language=None, data_type=None, wav
             model_path = cfg.INTERNEL_MODEL_DIR
 
         if cfg.model_cache.get(model_name) is None:
-            modelobj = WhisperModel(model_name, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=model_path, local_files_only=True)
+            modelobj = WhisperModel(model_name, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=model_path, local_files_only=True, cpu_threads=8)
             cfg.model_cache[model_name] = modelobj
         else:
             modelobj = cfg.model_cache[model_name]
@@ -197,9 +197,11 @@ def progressbar():
 
 @app.route('/api',methods=['GET','POST'])
 def api():
+    wav_file = ''
+    source_file = ''
     try:
         # 获取上传的文件
-        audio_file = request.files['file']
+        audio_file = request.files.get("file") or request.form.get("file")
         model_name = request.form.get("model")
         language = request.form.get("language")
         response_format = request.form.get("response_format")
@@ -218,15 +220,15 @@ def api():
         ext = ext.lower()
         # 如果是视频，先分离
         wav_file = os.path.join(cfg.TMP_DIR, f'{noextname}.wav')
+        source_file = os.path.join(cfg.TMP_DIR, f'{noextname}{ext}')
         print(f'{wav_file=}')
         if not os.path.exists(wav_file) or os.path.getsize(wav_file) == 0:
             msg = ""
             if ext in ['.mp4', '.mov', '.avi', '.mkv', '.mpeg', '.mp3', '.flac']:
-                video_file = os.path.join(cfg.TMP_DIR, f'{noextname}{ext}')
-                audio_file.save(video_file)
+                audio_file.save(source_file)
                 params = [
                     "-i",
-                    video_file,
+                    source_file,
                 ]
                 if ext not in ['.mp3', '.flac']:
                     params.append('-vn')
@@ -235,6 +237,14 @@ def api():
                 if rs != 'ok':
                     return jsonify({"code": 1, "msg": rs})
                 msg = "," + cfg.transobj['lang9']
+            elif ext == '.speex':
+                audio_file.save(source_file)
+                params = [
+                    "-i",
+                    source_file,
+                ]
+                params.append(wav_file)
+                rs = tool.runffmpeg(params)
             elif ext == '.wav':
                 audio_file.save(wav_file)
             else:
@@ -242,6 +252,7 @@ def api():
         print(f'{ext=}')
         sets=cfg.parse_ini()
         model = WhisperModel(model_name, device=sets.get('devtype'), compute_type=sets.get('cuda_com_type'), download_root=model_path, local_files_only=True)
+
 
         segments,_ = model.transcribe(wav_file, beam_size=sets.get('beam_size'),best_of=sets.get('best_of'),temperature=0 if sets.get('temperature')==0 else [0.0,0.2,0.4,0.6,0.8,1.0],condition_on_previous_text=sets.get('condition_on_previous_text'),vad_filter=sets.get('vad'),
     vad_parameters=dict(min_silence_duration_ms=300,max_speech_duration_s=10.5),language=language,initial_prompt=None if language!='zh' else sets.get('initial_prompt_zh'))
@@ -272,6 +283,11 @@ def api():
         print(e)
         app.logger.error(f'[api]error: {e}')
         return jsonify({'code': 2, 'msg': str(e)})
+    finally:
+
+        os.remove(wav_file)
+        os.remove(source_file)
+        pass
 
 
 @app.route('/checkupdate', methods=['GET', 'POST'])
