@@ -284,9 +284,10 @@ def api():
         app.logger.error(f'[api]error: {e}')
         return jsonify({'code': 2, 'msg': str(e)})
     finally:
-
-        os.remove(wav_file)
-        os.remove(source_file)
+        if os.path.exists(wav_file):
+            os.remove(wav_file)
+        if os.path.exists(source_file):
+            os.remove(source_file)
         pass
 
 
